@@ -35,10 +35,10 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401 && typeof window !== 'undefined') {
-      // Flush client credentials
-      Cookies.remove('token');
-      Cookies.remove('role');
-      window.location.href = '/login?expired=true';
+      // // Flush client credentials
+      // Cookies.remove('token');
+      // Cookies.remove('role');
+      // window.location.href = '/login?expired=true';
     }
     return Promise.reject(error);
   }

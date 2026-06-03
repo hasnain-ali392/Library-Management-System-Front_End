@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema } from '@/utils/validation';
@@ -19,11 +19,20 @@ export default function LoginPage() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    watch,
+    formState: { errors, isValid, isSubmitting },
   } = useForm({
     resolver: zodResolver(loginSchema),
+    mode: 'onChange',
     defaultValues: { email: '', password: '', rememberMe: false },
   });
+
+  useEffect(() => {
+    const subscription = watch(() => {
+      if (serverError) setServerError('');
+    });
+    return () => subscription.unsubscribe();
+  }, [watch, serverError]);
 
   const onSubmit = async (data) => {
     try {
@@ -78,7 +87,9 @@ export default function LoginPage() {
                 {...register('email')}
                 type="email"
                 placeholder="you@university.edu"
-                className={`w-full h-11 pl-10 pr-4 rounded-lg border bg-slate-50 dark:bg-slate-800/40 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all ${errors.email ? 'border-red-500 focus:border-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-blue-500'
+                disabled={loading || isSubmitting}
+                aria-disabled={loading || isSubmitting}
+                className={`w-full h-11 pl-10 pr-4 rounded-lg border bg-slate-50 dark:bg-slate-800/40 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${errors.email ? 'border-red-500 focus:border-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-blue-500'
                   }`}
               />
             </div>
@@ -96,13 +107,16 @@ export default function LoginPage() {
                 {...register('password')}
                 type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
-                className={`w-full h-11 pl-10 pr-10 rounded-lg border bg-slate-50 dark:bg-slate-800/40 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all ${errors.password ? 'border-red-500 focus:border-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-blue-500'
+                disabled={loading || isSubmitting}
+                aria-disabled={loading || isSubmitting}
+                className={`w-full h-11 pl-10 pr-10 rounded-lg border bg-slate-50 dark:bg-slate-800/40 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${errors.password ? 'border-red-500 focus:border-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-blue-500'
                   }`}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                disabled={loading || isSubmitting}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -115,19 +129,23 @@ export default function LoginPage() {
               {...register('rememberMe')}
               type="checkbox"
               id="rememberMe"
-              className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500/20 bg-slate-50 dark:bg-slate-800"
+              disabled={loading || isSubmitting}
+              aria-disabled={loading || isSubmitting}
+              className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500/20 bg-slate-50 dark:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
             />
-            <label htmlFor="rememberMe" className="ml-2 text-xs font-medium text-slate-600 dark:text-slate-400 select-none cursor-pointer">
+            <label htmlFor="rememberMe" className={`ml-2 text-xs font-medium text-slate-600 dark:text-slate-400 select-none ${loading || isSubmitting ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}>
               Remember my session criteria
             </label>
           </div>
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={!isValid || loading || isSubmitting || serverError !== ''}
+            aria-disabled={!isValid || loading || isSubmitting || serverError !== ''}
+            aria-busy={loading || isSubmitting}
             className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
           >
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Sign In'}
+            {(loading || isSubmitting) ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Sign In'}
           </button>
         </form>
 

@@ -2,7 +2,6 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '@/services/api';
 // Admin Thunks
 export const fetchAllUsers = createAsyncThunk('users/fetchAll', async (_, { rejectWithValue }) => {
-  // const { users } = useSelector((state) => state.users)
   try {
     const response = await api.get('/auth/users');
     return response.data;
@@ -23,7 +22,7 @@ export const toggleUserSuspension = createAsyncThunk('users/toggleSuspension', a
 // Self-Service User Thunks
 export const updateSelfProfile = createAsyncThunk('users/updateSelf', async (profileData, { rejectWithValue }) => {
   try {
-    const response = await api.put('/user/profile/update', profileData);
+    const response = await api.put('/auth/user/profile/update', profileData);
     return response.data.data;
   } catch (error) {
     return rejectWithValue(error.response?.data?.message || 'Failed to update personal registry profile');

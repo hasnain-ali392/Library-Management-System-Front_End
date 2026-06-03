@@ -11,13 +11,18 @@ import { User, Mail, Phone, Lock, Eye, EyeOff, Check, X, Loader2 } from 'lucide-
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState('');
-  const [success, setSuccess] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { register, handleSubmit, watch, formState: { errors } } = useForm({
+  const { register, handleSubmit, watch, formState: { errors, isValid, isSubmitting } } = useForm({
     resolver: zodResolver(registerSchema),
     mode: 'onChange'
   });
+
+  useEffect(() => {
+    const subscription = watch(() => {
+      if (serverError) setServerError('');
+    });
+    return () => subscription.unsubscribe();
+  }, [watch, serverError]);
 
   const passwordValue = watch('password', '');
 
@@ -44,7 +49,6 @@ export default function RegisterPage() {
 
   const onSubmit = async (data) => {
     try {
-      setIsSubmitting(true);
       setServerError('');
 
       await api.post('/auth/register', {
@@ -54,29 +58,11 @@ export default function RegisterPage() {
         phone: data.phone || undefined,
       });
 
-      setSuccess(true);
+      window.location.href = '/login';
     } catch (error) {
       setServerError(error.response?.data?.message || 'Account creation halted. User might already exist.');
-      setIsSubmitting(false);
     }
   };
-
-  if (success) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4">
-        <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-900/40 rounded-2xl p-8 text-center shadow-lg">
-          <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto mb-4">
-            <Check className="w-6 h-6" />
-          </div>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-slate-50">Registration Complete</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">Your academic profile is active. You can now log into your catalog workstation dashboard.</p>
-          <Link href="/login" className="mt-6 inline-block w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-all">
-            Proceed to Login Page
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 py-12 px-4">
@@ -102,7 +88,9 @@ export default function RegisterPage() {
               <input
                 {...register('name')}
                 placeholder="John Doe"
-                className={`w-full h-10 pl-10 pr-4 rounded-lg border bg-slate-50 dark:bg-slate-800/40 text-sm focus:outline-none transition-all ${errors.name ? 'border-red-500 focus:ring-1 focus:ring-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-blue-500'}`}
+                disabled={isSubmitting}
+                aria-disabled={isSubmitting}
+                className={`w-full h-10 pl-10 pr-4 rounded-lg border bg-slate-50 dark:bg-slate-800/40 text-sm focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed ${errors.name ? 'border-red-500 focus:ring-1 focus:ring-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-blue-500'}`}
               />
             </div>
             {errors.name && <p className="text-xs font-medium text-red-500 mt-1">{errors.name.message}</p>}
@@ -116,7 +104,9 @@ export default function RegisterPage() {
               <input
                 {...register('email')}
                 placeholder="student@university.edu"
-                className={`w-full h-10 pl-10 pr-4 rounded-lg border bg-slate-50 dark:bg-slate-800/40 text-sm focus:outline-none transition-all ${errors.email ? 'border-red-500 focus:ring-1 focus:ring-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-blue-500'}`}
+                disabled={isSubmitting}
+                aria-disabled={isSubmitting}
+                className={`w-full h-10 pl-10 pr-4 rounded-lg border bg-slate-50 dark:bg-slate-800/40 text-sm focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed ${errors.email ? 'border-red-500 focus:ring-1 focus:ring-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-blue-500'}`}
               />
             </div>
             {errors.email && <p className="text-xs font-medium text-red-500 mt-1">{errors.email.message}</p>}
@@ -130,7 +120,9 @@ export default function RegisterPage() {
               <input
                 {...register('phone')}
                 placeholder="+923001234567"
-                className={`w-full h-10 pl-10 pr-4 rounded-lg border bg-slate-50 dark:bg-slate-800/40 text-sm focus:outline-none transition-all ${errors.phone ? 'border-red-500 focus:ring-1 focus:ring-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-blue-500'}`}
+                disabled={isSubmitting}
+                aria-disabled={isSubmitting}
+                className={`w-full h-10 pl-10 pr-4 rounded-lg border bg-slate-50 dark:bg-slate-800/40 text-sm focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed ${errors.phone ? 'border-red-500 focus:ring-1 focus:ring-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-blue-500'}`}
               />
             </div>
             {errors.phone && <p className="text-xs font-medium text-red-500 mt-1">{errors.phone.message}</p>}
@@ -145,9 +137,11 @@ export default function RegisterPage() {
                 {...register('password')}
                 type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
-                className={`w-full h-10 pl-10 pr-10 rounded-lg border bg-slate-50 dark:bg-slate-800/40 text-sm focus:outline-none transition-all ${errors.password ? 'border-red-500 focus:ring-1 focus:ring-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-blue-500'}`}
+                disabled={isSubmitting}
+                aria-disabled={isSubmitting}
+                className={`w-full h-10 pl-10 pr-10 rounded-lg border bg-slate-50 dark:bg-slate-800/40 text-sm focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed ${errors.password ? 'border-red-500 focus:ring-1 focus:ring-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-blue-500'}`}
               />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+              <button type="button" disabled={isSubmitting} onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 disabled:opacity-50 disabled:cursor-not-allowed">
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
@@ -190,7 +184,9 @@ export default function RegisterPage() {
                 {...register('confirmPassword')}
                 type="password"
                 placeholder="••••••••"
-                className={`w-full h-10 pl-10 pr-4 rounded-lg border bg-slate-50 dark:bg-slate-800/40 text-sm focus:outline-none transition-all ${errors.confirmPassword ? 'border-red-500 focus:ring-1 focus:ring-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-blue-500'}`}
+                disabled={isSubmitting}
+                aria-disabled={isSubmitting}
+                className={`w-full h-10 pl-10 pr-4 rounded-lg border bg-slate-50 dark:bg-slate-800/40 text-sm focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed ${errors.confirmPassword ? 'border-red-500 focus:ring-1 focus:ring-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-blue-500'}`}
               />
             </div>
             {errors.confirmPassword && <p className="text-xs font-medium text-red-500 mt-1">{errors.confirmPassword.message}</p>}
@@ -203,9 +199,11 @@ export default function RegisterPage() {
                 {...register('terms')}
                 type="checkbox"
                 id="terms"
-                className="w-4 h-4 rounded border-slate-300 text-blue-600 mt-0.5 focus:ring-blue-500/20"
+                disabled={isSubmitting}
+                aria-disabled={isSubmitting}
+                className="w-4 h-4 rounded border-slate-300 text-blue-600 mt-0.5 focus:ring-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
               />
-              <label htmlFor="terms" className="ml-2 text-xs text-slate-600 dark:text-slate-400 select-none cursor-pointer leading-tight">
+              <label htmlFor="terms" className={`ml-2 text-xs text-slate-600 dark:text-slate-400 select-none leading-tight ${isSubmitting ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}>
                 I hereby declare that all profile metrics are valid and accept systemic liability for book return rules.
               </label>
             </div>
@@ -215,8 +213,10 @@ export default function RegisterPage() {
           {/* Action Button */}
           <button
             type="submit"
-            disabled={isSubmitting}
-            className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            disabled={!isValid || isSubmitting || serverError !== ''}
+            aria-disabled={!isValid || isSubmitting || serverError !== ''}
+            aria-busy={isSubmitting}
+            className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
           >
             {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Create Account'}
           </button>

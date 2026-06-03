@@ -1,7 +1,7 @@
-// middleware.js (Root directory)
+// proxy.js (Root directory)
 import { NextResponse } from 'next/server';
 
-export function middleware(request) {
+export function proxy(request) {
   const { pathname } = request.nextUrl;
   
   // Extract token and user role from cookies
@@ -32,7 +32,7 @@ export function middleware(request) {
   return NextResponse.next();
 }
 
-// Limit middleware tracking to application dashboard and authentication matrices
+// Limit proxy tracking to application dashboard and authentication matrices
 export const config = {
   matcher: ['/admin/:path*', '/user/:path*', '/login', '/register'],
 };

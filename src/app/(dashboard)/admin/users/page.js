@@ -32,11 +32,10 @@ export default function AdministrativeUserDirectory() {
     setSelectedUser(null);
   };
 
-  const filteredUsers = users.filter(u =>
+  const filteredUsers = (users || []).filter(u =>
     u.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     u.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
   return (
     <div className="space-y-6">
       <div>
