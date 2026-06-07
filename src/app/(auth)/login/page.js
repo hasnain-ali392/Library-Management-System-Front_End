@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema } from '@/utils/validation';
@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { authStart, authSuccess } from '@/redux/slices/authSlice';
 import api from '@/services/api';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Mail, Lock, Eye, EyeOff, Loader2, Library } from 'lucide-react';
 
 export default function LoginPage() {
@@ -15,11 +16,11 @@ export default function LoginPage() {
   const [serverError, setServerError] = useState('');
   const dispatch = useDispatch();
   const { loading } = useSelector((state) => state.auth);
+  const router = useRouter();
 
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors, isValid, isSubmitting },
   } = useForm({
     resolver: zodResolver(loginSchema),
@@ -27,12 +28,9 @@ export default function LoginPage() {
     defaultValues: { email: '', password: '', rememberMe: false },
   });
 
-  useEffect(() => {
-    const subscription = watch(() => {
-      if (serverError) setServerError('');
-    });
-    return () => subscription.unsubscribe();
-  }, [watch, serverError]);
+  const clearError = () => {
+    if (serverError) setServerError('');
+  };
 
   const onSubmit = async (data) => {
     try {
@@ -50,7 +48,7 @@ export default function LoginPage() {
       dispatch(authSuccess({ user, token }));
 
       // Reroute based on authorized system privileges
-      window.location.href = user.role === 'admin' ? '/admin/dashboard' : '/user/dashboard';
+      router.push(user.role === 'admin' ? '/admin/dashboard' : '/user/dashboard');
     } catch (error) {
       const message = error.response?.data?.message || 'Invalid credentials. Please try again.';
       setServerError(message);
@@ -80,63 +78,63 @@ export default function LoginPage() {
         {/* Form Elements */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div>
-            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Email Address</label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                {...register('email')}
-                type="email"
-                placeholder="you@university.edu"
-                disabled={loading || isSubmitting}
-                aria-disabled={loading || isSubmitting}
-                className={`w-full h-11 pl-10 pr-4 rounded-lg border bg-slate-50 dark:bg-slate-800/40 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${errors.email ? 'border-red-500 focus:border-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-blue-500'
-                  }`}
-              />
-            </div>
-            {errors.email && <p className="text-xs font-medium text-red-500 mt-1">{errors.email.message}</p>}
-          </div>
-
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Password</label>
-              <Link href="/forgot-password" className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline">Forgot password?</Link>
-            </div>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                {...register('password')}
-                type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
-                disabled={loading || isSubmitting}
-                aria-disabled={loading || isSubmitting}
-                className={`w-full h-11 pl-10 pr-10 rounded-lg border bg-slate-50 dark:bg-slate-800/40 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${errors.password ? 'border-red-500 focus:border-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-blue-500'
-                  }`}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                disabled={loading || isSubmitting}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-            {errors.password && <p className="text-xs font-medium text-red-500 mt-1">{errors.password.message}</p>}
-          </div>
-
-          <div className="flex items-center">
+          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Email Address</label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
-              {...register('rememberMe')}
-              type="checkbox"
-              id="rememberMe"
+              {...register('email', { onChange: clearError })}
+              type="email"
+              placeholder="you@university.edu"
               disabled={loading || isSubmitting}
               aria-disabled={loading || isSubmitting}
-              className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500/20 bg-slate-50 dark:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`w-full h-11 pl-10 pr-4 rounded-lg border bg-slate-50 dark:bg-slate-800/40 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${errors.email ? 'border-red-500 focus:border-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-blue-500'
+                }`}
             />
-            <label htmlFor="rememberMe" className={`ml-2 text-xs font-medium text-slate-600 dark:text-slate-400 select-none ${loading || isSubmitting ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}>
-              Remember my session criteria
-            </label>
           </div>
+          {errors.email && <p className="text-xs font-medium text-red-500 mt-1">{errors.email.message}</p>}
+        </div>
+
+        <div>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Password</label>
+            <Link href="/forgot-password" className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline">Forgot password?</Link>
+          </div>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              {...register('password', { onChange: clearError })}
+              type={showPassword ? 'text' : 'password'}
+              placeholder="••••••••"
+              disabled={loading || isSubmitting}
+              aria-disabled={loading || isSubmitting}
+              className={`w-full h-11 pl-10 pr-10 rounded-lg border bg-slate-50 dark:bg-slate-800/40 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${errors.password ? 'border-red-500 focus:border-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-blue-500'
+                }`}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              disabled={loading || isSubmitting}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+          {errors.password && <p className="text-xs font-medium text-red-500 mt-1">{errors.password.message}</p>}
+        </div>
+
+        <div className="flex items-center">
+          <input
+            {...register('rememberMe', { onChange: clearError })}
+            type="checkbox"
+            id="rememberMe"
+            disabled={loading || isSubmitting}
+            aria-disabled={loading || isSubmitting}
+            className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500/20 bg-slate-50 dark:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+          />
+          <label htmlFor="rememberMe" className={`ml-2 text-xs font-medium text-slate-600 dark:text-slate-400 select-none ${loading || isSubmitting ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}>
+            Remember my session criteria
+          </label>
+        </div>
 
           <button
             type="submit"

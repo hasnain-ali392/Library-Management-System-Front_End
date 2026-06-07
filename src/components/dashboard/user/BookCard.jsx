@@ -1,30 +1,38 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { Star, Library, AlertCircle } from 'lucide-react';
 
 export default function BookCard({ book, onClick }) {
   const isAvailable = book.available > 0;
 
   return (
-    <div 
+    <div
       onClick={onClick}
       className="group flex flex-col bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden cursor-pointer hover:shadow-xl hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-300"
     >
       {/* Book Cover Image Area */}
       <div className="relative h-48 w-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-        <img 
-          src={book.image} 
-          alt={book.title} 
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-        />
+        {book.bookImage ? (
+          <Image
+            src={book.bookImage?.url}
+            alt={book.title}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800">
+            <Library className="w-12 h-12 text-slate-400 dark:text-slate-500" />
+          </div>
+        )}
         {/* Availability Badge */}
         <div className="absolute top-3 right-3">
-          <span className={`px-2.5 py-1 text-xs font-bold rounded-md backdrop-blur-md ${
-            isAvailable 
-              ? 'bg-emerald-500/90 text-white' 
+          <span className={`px-2.5 py-1 text-xs font-bold rounded-md backdrop-blur-md ${isAvailable
+              ? 'bg-emerald-500/90 text-white'
               : 'bg-red-500/90 text-white'
-          }`}>
+            }`}>
             {isAvailable ? 'Available' : 'Out of Stock'}
           </span>
         </div>
@@ -41,7 +49,7 @@ export default function BookCard({ book, onClick }) {
             <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{book.rating}</span>
           </div>
         </div>
-        
+
         <h3 className="font-bold text-slate-900 dark:text-slate-50 line-clamp-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
           {book.title}
         </h3>

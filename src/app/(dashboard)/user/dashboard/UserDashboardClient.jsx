@@ -17,7 +17,7 @@ export default function UserDashboardClient() {
   const loading = useSelector((state) => state.circulation.loading);
 
   useEffect(() => {
-    setHasMounted(true);
+    setTimeout(() => setHasMounted(true), 0);
     dispatch(fetchCirculationRecords("user"));
   }, [dispatch]);
 

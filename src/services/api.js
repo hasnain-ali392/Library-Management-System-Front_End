@@ -30,16 +30,18 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response Interceptor: Manage Global Session Expiration
+// Add a response interceptor for global error handling
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401 && typeof window !== 'undefined') {
-      // // Flush client credentials
-      // Cookies.remove('token');
-      // Cookies.remove('role');
-      // window.location.href = '/login?expired=true';
+    const message = error.response?.data?.message || 'A network error occurred';
+
+    // Auto-logout on 401 Unauthorized (except for login/register)
+    if (error.response?.status === 401 && !error.config.url.includes('/auth/')) {
+      // We could dispatch logout here if we had access to store
+      console.error('Session expired or unauthorized');
     }
+
     return Promise.reject(error);
   }
 );

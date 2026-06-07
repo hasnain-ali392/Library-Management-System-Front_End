@@ -3,16 +3,16 @@ import api from '@/services/api';
 // Admin Thunks
 export const fetchAllUsers = createAsyncThunk('users/fetchAll', async (_, { rejectWithValue }) => {
   try {
-    const response = await api.get('/auth/users');
-    return response.data;
+    const response = await api.get('/users');
+    return response.data.data;
   } catch (error) {
     return rejectWithValue(error.response?.data?.message || 'Failed to fetch directory registry');
   }
 });
 
-export const toggleUserSuspension = createAsyncThunk('users/toggleSuspension', async ({ userId, isSuspended }, { rejectWithValue }) => {
+export const toggleUserSuspension = createAsyncThunk('users/toggleSuspension', async ({ userId, suspended, reason }, { rejectWithValue }) => {
   try {
-    const response = await api.put(`/auth/users/${userId}/suspension`, { suspended: isSuspended });
+    const response = await api.put(`/users/${userId}/suspension`, { suspended, reason });
     return response.data.data; // Returns updated user object
   } catch (error) {
     return rejectWithValue(error.response?.data?.message || 'Failed to mutate account restriction state');
@@ -22,7 +22,7 @@ export const toggleUserSuspension = createAsyncThunk('users/toggleSuspension', a
 // Self-Service User Thunks
 export const updateSelfProfile = createAsyncThunk('users/updateSelf', async (profileData, { rejectWithValue }) => {
   try {
-    const response = await api.put('/auth/user/profile/update', profileData);
+    const response = await api.put('/users/profile/update', profileData);
     return response.data.data;
   } catch (error) {
     return rejectWithValue(error.response?.data?.message || 'Failed to update personal registry profile');

@@ -9,6 +9,8 @@ const DAILY_FINE_RATE = 20; // Rs. 20 per day overdue
  * @returns {{ daysOverdue: number, fineAmount: number }}
  */
 export const calculateOverdueMetrics = (dueDateISO, returnDateISO) => {
+  if (!dueDateISO) return { daysOverdue: 0, fineAmount: 0 };
+
   const dueAnchor = parseISO(dueDateISO);
   // If item is already returned, check against the return date; otherwise, check against today
   const comparativeAnchor = returnDateISO ? parseISO(returnDateISO) : new Date();

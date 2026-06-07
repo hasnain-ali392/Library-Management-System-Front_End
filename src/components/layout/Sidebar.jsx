@@ -31,7 +31,7 @@ export default function Sidebar({
   const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
-    setHasMounted(true);
+    setTimeout(() => setHasMounted(true), 0);
   }, []);
 
   // Dynamic Role Filtering Selection
@@ -61,17 +61,14 @@ export default function Sidebar({
 
   const activeLinks = role === "admin" ? adminLinks : userLinks;
 
-  const Response = async () => {
-    const r = await api.post("/auth/logout", {
-      email: user?.email,
-    });
-    console.log(r);
-    const data = r.data.isLogin;
-    console.log(data);
-    if (data === false) {
+  const handleLogout = async () => {
+    try {
+      await api.post("/auth/logout");
       dispatch(logout());
-    } else {
-      console.error(r.data.message)
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Even if API call fails, still logout client-side
+      dispatch(logout());
     }
   };
 
@@ -120,11 +117,10 @@ export default function Sidebar({
               key={link.href}
               href={link.href}
               onClick={() => setIsMobileOpen(false)} // Auto-close drawer on mobile choice
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group ${
-                isActive
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group ${isActive
                   ? "bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400"
                   : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-200"
-              }`}
+                }`}
             >
               <Icon
                 className={`w-5 h-5 shrink-0 transition-transform group-hover:scale-105 ${isActive ? "text-blue-600 dark:text-blue-400" : "text-slate-400 dark:text-slate-500"}`}
@@ -138,7 +134,7 @@ export default function Sidebar({
       {/* Sticky Bottom Actions */}
       <div className="p-3 border-t border-slate-200 dark:border-slate-800">
         <button
-          onClick={() => Response()}
+          onClick={handleLogout}
           className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all group"
         >
           <LogOut className="w-5 h-5 shrink-0 group-hover:translate-x-0.5 transition-transform" />

@@ -13,7 +13,7 @@ export const fetchBooks = createAsyncThunk('books/fetchAll', async (params, { re
 
 export const addBook = createAsyncThunk('books/add', async (bookData, { rejectWithValue }) => {
   try {
-    const response = await api.post('/books/add', bookData);
+    const response = await api.post('/books', bookData);
     return response.data.data;
   } catch (error) {
     return rejectWithValue(error.response?.data?.message || 'Failed to add book');
@@ -22,7 +22,7 @@ export const addBook = createAsyncThunk('books/add', async (bookData, { rejectWi
 
 export const updateBook = createAsyncThunk('books/update', async ({ id, data }, { rejectWithValue }) => {
   try {
-    const response = await api.put(`/books/update/${id}`, data);
+    const response = await api.put(`/books/${id}`, data);
     return response.data.data;
   } catch (error) {
     return rejectWithValue(error.response?.data?.message || 'Failed to update book');
@@ -31,7 +31,7 @@ export const updateBook = createAsyncThunk('books/update', async ({ id, data }, 
 
 export const deleteBook = createAsyncThunk('books/delete', async (id, { rejectWithValue }) => {
   try {
-    await api.delete(`/books/delete/${id}`);
+    await api.delete(`/books/${id}`);
     return id;
   } catch (error) {
     return rejectWithValue(error.response?.data?.message || 'Failed to delete book');
@@ -58,7 +58,7 @@ const booksSlice = createSlice({
       .addCase(fetchBooks.pending, (state) => { state.loading = true; state.error = null; })
       .addCase(fetchBooks.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload.books || action.payload; 
+        state.items = action.payload.books || action.payload;
         state.total = action.payload.total || action.payload.length;
       })
       .addCase(fetchBooks.rejected, (state, action) => { state.loading = false; state.error = action.payload; })

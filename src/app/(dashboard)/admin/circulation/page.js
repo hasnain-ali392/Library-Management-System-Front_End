@@ -18,7 +18,7 @@ export default function AdminCirculationLedger() {
   const handleTriggerReturn = (id, dueDate) => {
     const { fineAmount } = calculateOverdueMetrics(dueDate);
     if (window.confirm(`Process verification for book entry return? System evaluated fine payload: Rs. ${fineAmount}`)) {
-      dispatch(processBookReturn({ recordId: id, calculatedFine: fineAmount }));
+      dispatch(processBookReturn({ recordId: id, remarks: 'Returned via Admin Desk' }));
     }
   };
 
@@ -54,8 +54,8 @@ export default function AdminCirculationLedger() {
                 <tr><td colSpan="5" className="p-8 text-center text-slate-400">No active library rental actions currently logged.</td></tr>
               ) : (
                 records.map((rec) => {
-                  const isReturned = rec.status === 'Returned';
-                  const liveOverdue = calculateOverdueMetrics(rec.dueDate, rec.returnDate);
+                  const isReturned = rec.status === 'returned';
+                  const liveOverdue = calculateOverdueMetrics(rec.returnDate, rec.actualReturnDate);
                   
                   return (
                     <tr key={rec._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/10 transition-colors">
@@ -69,10 +69,10 @@ export default function AdminCirculationLedger() {
                       </td>
                       <td className="p-4 space-y-0.5 text-xs">
                         <div className="flex items-center gap-1.5 text-slate-500">
-                          <span className="font-medium">Issued:</span> {format(parseISO(rec.issueDate), 'dd MMM yyyy')}
+                          <span className="font-medium">Issued:</span> {rec.issueDate ? format(parseISO(rec.issueDate), 'dd MMM yyyy') : '—'}
                         </div>
                         <div className="flex items-center gap-1.5 font-medium text-slate-700 dark:text-slate-300">
-                          <span>Target Due:</span> {format(parseISO(rec.dueDate), 'dd MMM yyyy')}
+                          <span>Target Due:</span> {rec.returnDate ? format(parseISO(rec.returnDate), 'dd MMM yyyy') : '—'}
                         </div>
                       </td>
                       <td className="p-4">
@@ -81,8 +81,8 @@ export default function AdminCirculationLedger() {
                             <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 px-2 py-0.5 rounded-md">
                               <CheckCircle2 className="w-3.5 h-3.5" /> Returned Safely
                             </span>
-                            {rec.finePaid === false && rec.fineAmount > 0 && (
-                              <p className="text-xs text-red-500 font-bold">Unpaid Fine: Rs. {rec.fineAmount}</p>
+                            {rec.finePaid === false && (rec.fine || 0) > 0 && (
+                              <p className="text-xs text-red-500 font-bold">Unpaid Fine: Rs. {rec.fine}</p>
                             )}
                           </div>
                         ) : liveOverdue.daysOverdue > 0 ? (
@@ -101,12 +101,12 @@ export default function AdminCirculationLedger() {
                       <td className="p-4 text-right">
                         {!isReturned ? (
                           <button 
-                            onClick={() => handleTriggerReturn(rec._id, rec.dueDate)}
+                            onClick={() => handleTriggerReturn(rec._id, rec.returnDate)}
                             className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-950/50 dark:text-blue-400 font-bold text-xs rounded-lg transition-colors flex items-center gap-1 ml-auto"
                           >
                             <RotateCcw className="w-3.5 h-3.5" /> Process Return
                           </button>
-                        ) : rec.fineAmount > 0 && !rec.finePaid ? (
+                        ) : (rec.fine || 0) > 0 && !rec.finePaid ? (
                           <button 
                             onClick={() => handleSettleFine(rec._id)}
                             className="px-3 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-950/50 dark:text-amber-400 font-bold text-xs rounded-lg transition-colors flex items-center gap-1 ml-auto"

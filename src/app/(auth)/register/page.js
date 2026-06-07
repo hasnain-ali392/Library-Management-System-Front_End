@@ -1,33 +1,32 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import React, { useState } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { registerSchema } from '@/utils/validation';
 import api from '@/services/api';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { User, Mail, Phone, Lock, Eye, EyeOff, Check, X, Loader2 } from 'lucide-react';
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState('');
+  const router = useRouter();
 
-  const { register, handleSubmit, watch, formState: { errors, isValid, isSubmitting } } = useForm({
+  const { register, handleSubmit, control, formState: { errors, isValid, isSubmitting } } = useForm({
     resolver: zodResolver(registerSchema),
     mode: 'onChange'
   });
 
-  useEffect(() => {
-    const subscription = watch(() => {
-      if (serverError) setServerError('');
-    });
-    return () => subscription.unsubscribe();
-  }, [watch, serverError]);
+  const formValues = useWatch({ control });
+  const passwordValue = formValues?.password || '';
 
-  const passwordValue = watch('password', '');
+  const clearError = () => {
+    if (serverError) setServerError('');
+  };
 
   // Live Metric Rules Arrays
-  const [strengthScore, setStrengthScore] = useState(0);
   const requirements = [
     { label: 'At least 8 characters long', valid: passwordValue.length >= 8 },
     { label: 'Contains an uppercase letter', valid: /[A-Z]/.test(passwordValue) },
@@ -35,10 +34,7 @@ export default function RegisterPage() {
     { label: 'Contains a special character (!@#$%^&*)', valid: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(passwordValue) },
   ];
 
-  useEffect(() => {
-    const metCount = requirements.filter(req => req.valid).length;
-    setStrengthScore(metCount);
-  }, [passwordValue]);
+  const strengthScore = requirements.filter(req => req.valid).length;
 
   const getStrengthLabel = () => {
     if (!passwordValue) return { label: 'None', color: 'bg-slate-200 dark:bg-slate-800 text-slate-400', width: 'w-0' };
@@ -58,7 +54,7 @@ export default function RegisterPage() {
         phone: data.phone || undefined,
       });
 
-      window.location.href = '/login';
+      router.push('/login');
     } catch (error) {
       setServerError(error.response?.data?.message || 'Account creation halted. User might already exist.');
     }
@@ -82,133 +78,133 @@ export default function RegisterPage() {
         <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
           {/* Full Name Input */}
           <div>
-            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Full Name</label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                {...register('name')}
-                placeholder="John Doe"
-                disabled={isSubmitting}
-                aria-disabled={isSubmitting}
-                className={`w-full h-10 pl-10 pr-4 rounded-lg border bg-slate-50 dark:bg-slate-800/40 text-sm focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed ${errors.name ? 'border-red-500 focus:ring-1 focus:ring-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-blue-500'}`}
-              />
-            </div>
-            {errors.name && <p className="text-xs font-medium text-red-500 mt-1">{errors.name.message}</p>}
+          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Full Name</label>
+          <div className="relative">
+            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              {...register('name', { onChange: clearError })}
+              placeholder="John Doe"
+              disabled={isSubmitting}
+              aria-disabled={isSubmitting}
+              className={`w-full h-10 pl-10 pr-4 rounded-lg border bg-slate-50 dark:bg-slate-800/40 text-sm focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed ${errors.name ? 'border-red-500 focus:ring-1 focus:ring-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-blue-500'}`}
+            />
+          </div>
+          {errors.name && <p className="text-xs font-medium text-red-500 mt-1">{errors.name.message}</p>}
+        </div>
+
+        {/* Email Input */}
+        <div>
+          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Academic Email</label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              {...register('email', { onChange: clearError })}
+              placeholder="student@university.edu"
+              disabled={isSubmitting}
+              aria-disabled={isSubmitting}
+              className={`w-full h-10 pl-10 pr-4 rounded-lg border bg-slate-50 dark:bg-slate-800/40 text-sm focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed ${errors.email ? 'border-red-500 focus:ring-1 focus:ring-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-blue-500'}`}
+            />
+          </div>
+          {errors.email && <p className="text-xs font-medium text-red-500 mt-1">{errors.email.message}</p>}
+        </div>
+
+        {/* Phone Input */}
+        <div>
+          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Contact Phone</label>
+          <div className="relative">
+            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              {...register('phone', { onChange: clearError })}
+              placeholder="+923001234567"
+              disabled={isSubmitting}
+              aria-disabled={isSubmitting}
+              className={`w-full h-10 pl-10 pr-4 rounded-lg border bg-slate-50 dark:bg-slate-800/40 text-sm focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed ${errors.phone ? 'border-red-500 focus:ring-1 focus:ring-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-blue-500'}`}
+            />
+          </div>
+          {errors.phone && <p className="text-xs font-medium text-red-500 mt-1">{errors.phone.message}</p>}
+        </div>
+
+        {/* Password Input */}
+        <div>
+          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Security Password</label>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              {...register('password', { onChange: clearError })}
+              type={showPassword ? 'text' : 'password'}
+              placeholder="••••••••"
+              disabled={isSubmitting}
+              aria-disabled={isSubmitting}
+              className={`w-full h-10 pl-10 pr-10 rounded-lg border bg-slate-50 dark:bg-slate-800/40 text-sm focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed ${errors.password ? 'border-red-500 focus:ring-1 focus:ring-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-blue-500'}`}
+            />
+            <button type="button" disabled={isSubmitting} onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 disabled:opacity-50 disabled:cursor-not-allowed">
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
           </div>
 
-          {/* Email Input */}
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Academic Email</label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                {...register('email')}
-                placeholder="student@university.edu"
-                disabled={isSubmitting}
-                aria-disabled={isSubmitting}
-                className={`w-full h-10 pl-10 pr-4 rounded-lg border bg-slate-50 dark:bg-slate-800/40 text-sm focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed ${errors.email ? 'border-red-500 focus:ring-1 focus:ring-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-blue-500'}`}
-              />
-            </div>
-            {errors.email && <p className="text-xs font-medium text-red-500 mt-1">{errors.email.message}</p>}
-          </div>
-
-          {/* Phone Input */}
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Contact Phone</label>
-            <div className="relative">
-              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                {...register('phone')}
-                placeholder="+923001234567"
-                disabled={isSubmitting}
-                aria-disabled={isSubmitting}
-                className={`w-full h-10 pl-10 pr-4 rounded-lg border bg-slate-50 dark:bg-slate-800/40 text-sm focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed ${errors.phone ? 'border-red-500 focus:ring-1 focus:ring-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-blue-500'}`}
-              />
-            </div>
-            {errors.phone && <p className="text-xs font-medium text-red-500 mt-1">{errors.phone.message}</p>}
-          </div>
-
-          {/* Password Input */}
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Security Password</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                {...register('password')}
-                type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
-                disabled={isSubmitting}
-                aria-disabled={isSubmitting}
-                className={`w-full h-10 pl-10 pr-10 rounded-lg border bg-slate-50 dark:bg-slate-800/40 text-sm focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed ${errors.password ? 'border-red-500 focus:ring-1 focus:ring-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-blue-500'}`}
-              />
-              <button type="button" disabled={isSubmitting} onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 disabled:opacity-50 disabled:cursor-not-allowed">
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-
-            {/* Live Strength Track Slider */}
-            {passwordValue && (
-              <div className="mt-2.5 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
-                <div className="flex items-center justify-between text-xs mb-1.5">
-                  <span className="font-medium text-slate-500">Password Strength:</span>
-                  <span className={`font-bold ${getStrengthLabel().color.split(' ')[1]}`}>{getStrengthLabel().label}</span>
-                </div>
-                <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                  <div className={`h-full transition-all duration-300 ${getStrengthLabel().color.split(' ')[0]} ${getStrengthLabel().width}`} />
-                </div>
-
-                {/* Visual Checklist */}
-                <ul className="mt-3 space-y-1">
-                  {requirements.map((req, i) => (
-                    <li key={i} className="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
-                      {req.valid ? (
-                        <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                      ) : (
-                        <X className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 shrink-0" />
-                      )}
-                      <span className={req.valid ? 'text-slate-700 dark:text-slate-300 line-through opacity-60' : ''}>{req.label}</span>
-                    </li>
-                  ))}
-                </ul>
+          {/* Live Strength Track Slider */}
+          {passwordValue && (
+            <div className="mt-2.5 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
+              <div className="flex items-center justify-between text-xs mb-1.5">
+                <span className="font-medium text-slate-500">Password Strength:</span>
+                <span className={`font-bold ${getStrengthLabel().color.split(' ')[1]}`}>{getStrengthLabel().label}</span>
               </div>
-            )}
-            {errors.password && <p className="text-xs font-medium text-red-500 mt-1">{errors.password.message}</p>}
-          </div>
+              <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                <div className={`h-full transition-all duration-300 ${getStrengthLabel().color.split(' ')[0]} ${getStrengthLabel().width}`} />
+              </div>
 
-          {/* Confirm Password Input */}
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Confirm Password</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                {...register('confirmPassword')}
-                type="password"
-                placeholder="••••••••"
-                disabled={isSubmitting}
-                aria-disabled={isSubmitting}
-                className={`w-full h-10 pl-10 pr-4 rounded-lg border bg-slate-50 dark:bg-slate-800/40 text-sm focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed ${errors.confirmPassword ? 'border-red-500 focus:ring-1 focus:ring-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-blue-500'}`}
-              />
+              {/* Visual Checklist */}
+              <ul className="mt-3 space-y-1">
+                {requirements.map((req, i) => (
+                  <li key={i} className="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+                    {req.valid ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    ) : (
+                      <X className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 shrink-0" />
+                    )}
+                    <span className={req.valid ? 'text-slate-700 dark:text-slate-300 line-through opacity-60' : ''}>{req.label}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
-            {errors.confirmPassword && <p className="text-xs font-medium text-red-500 mt-1">{errors.confirmPassword.message}</p>}
-          </div>
+          )}
+          {errors.password && <p className="text-xs font-medium text-red-500 mt-1">{errors.password.message}</p>}
+        </div>
 
-          {/* Terms & Conditions Checkbox */}
-          <div>
-            <div className="flex items-start">
-              <input
-                {...register('terms')}
-                type="checkbox"
-                id="terms"
-                disabled={isSubmitting}
-                aria-disabled={isSubmitting}
-                className="w-4 h-4 rounded border-slate-300 text-blue-600 mt-0.5 focus:ring-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
-              />
-              <label htmlFor="terms" className={`ml-2 text-xs text-slate-600 dark:text-slate-400 select-none leading-tight ${isSubmitting ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}>
-                I hereby declare that all profile metrics are valid and accept systemic liability for book return rules.
-              </label>
-            </div>
-            {errors.terms && <p className="text-xs font-medium text-red-500 mt-1">{errors.terms.message}</p>}
+        {/* Confirm Password Input */}
+        <div>
+          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Confirm Password</label>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              {...register('confirmPassword', { onChange: clearError })}
+              type="password"
+              placeholder="••••••••"
+              disabled={isSubmitting}
+              aria-disabled={isSubmitting}
+              className={`w-full h-10 pl-10 pr-4 rounded-lg border bg-slate-50 dark:bg-slate-800/40 text-sm focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed ${errors.confirmPassword ? 'border-red-500 focus:ring-1 focus:ring-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-blue-500'}`}
+            />
           </div>
+          {errors.confirmPassword && <p className="text-xs font-medium text-red-500 mt-1">{errors.confirmPassword.message}</p>}
+        </div>
+
+        {/* Terms & Conditions Checkbox */}
+        <div>
+          <div className="flex items-start">
+            <input
+              {...register('terms', { onChange: clearError })}
+              type="checkbox"
+              id="terms"
+              disabled={isSubmitting}
+              aria-disabled={isSubmitting}
+              className="w-4 h-4 rounded border-slate-300 text-blue-600 mt-0.5 focus:ring-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+            <label htmlFor="terms" className={`ml-2 text-xs text-slate-600 dark:text-slate-400 select-none leading-tight ${isSubmitting ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}>
+              I hereby declare that all profile metrics are valid and accept systemic liability for book return rules.
+            </label>
+          </div>
+          {errors.terms && <p className="text-xs font-medium text-red-500 mt-1">{errors.terms.message}</p>}
+        </div>
 
           {/* Action Button */}
           <button

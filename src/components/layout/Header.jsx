@@ -9,7 +9,7 @@ export default function Header({ setIsMobileOpen }) {
   const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
-    setHasMounted(true);
+    setTimeout(() => setHasMounted(true), 0);
   }, []);
 
   const displayName = hasMounted ? user?.name || 'Academic User' : 'Academic User';

@@ -17,19 +17,26 @@ export default function AdministrativeUserDirectory() {
     dispatch(fetchAllUsers());
   }, [dispatch]);
 
-  const triggerModalToggle = (user) => {
+  const handleSuspensionMutation = (user) => {
+    if (user.role === 'admin') return;
     setSelectedUser(user);
     setIsModalOpen(true);
   };
 
-  const executeSuspensionChange = async () => {
+  const executeSuspensionChange = async (reason) => {
     if (!selectedUser) return;
-    await dispatch(toggleUserSuspension({
-      userId: selectedUser._id,
-      isSuspended: !selectedUser.isSuspended
-    })).unwrap();
-    setIsModalOpen(false);
-    setSelectedUser(null);
+    const actionLabel = selectedUser.isSuspended ? 'reactivate' : 'suspend';
+    try {
+      await dispatch(toggleUserSuspension({
+        userId: selectedUser._id,
+        suspended: !selectedUser.isSuspended,
+        reason: reason || `Admin ${actionLabel}`
+      })).unwrap();
+      setIsModalOpen(false);
+      setSelectedUser(null);
+    } catch (error) {
+      console.error(`Failed to ${actionLabel} user:`, error);
+    }
   };
 
   const filteredUsers = (users || []).filter(u =>
@@ -105,7 +112,7 @@ export default function AdministrativeUserDirectory() {
                     <td className="p-4 text-right">
                       {user.role !== 'admin' ? (
                         <button
-                          onClick={() => triggerModalToggle(user)}
+                          onClick={() => handleSuspensionMutation(user)}
                           className={`px-3 py-1.5 font-bold text-xs rounded-lg transition-colors inline-flex items-center gap-1 ${user.isSuspended
                             ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 dark:bg-emerald-950/40'
                             : 'bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-950/40'

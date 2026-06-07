@@ -41,7 +41,7 @@ export default function StatsDashboard() {
 
   // Suppress hydration warning loops by ensuring execution context is client-native
   useEffect(() => {
-    setMounted(true);
+    setTimeout(() => setMounted(true), 0);
   }, []);
 
   if (!mounted) {

@@ -4,7 +4,7 @@ import api from '@/services/api';
 export const fetchCirculationRecords = createAsyncThunk('circulation/fetchAll', async (role, { rejectWithValue }) => {
   try {
     // If user role, fetches personal history; if admin, fetches global library ledger
-    const endpoint = role === 'admin' ? '/circulation/admin/all' : '/circulation/user/history';
+    const endpoint = role === 'admin' ? '/circulation/admin/all' : '/circulation/history';
     const response = await api.get(endpoint);
     return response.data.data;
   } catch (error) {
@@ -12,9 +12,23 @@ export const fetchCirculationRecords = createAsyncThunk('circulation/fetchAll', 
   }
 });
 
-export const processBookReturn = createAsyncThunk('circulation/return', async ({ recordId, calculatedFine }, { rejectWithValue }) => {
+// User-initiated book borrowing
+export const borrowBook = createAsyncThunk('circulation/borrow', async ({ bookId, returnDate }, { rejectWithValue }) => {
   try {
-    const response = await api.put(`/circulation/return/${recordId}`, { fine: calculatedFine });
+    const payload = { bookId };
+    if (returnDate) {
+      payload.returnDate = new Date(returnDate).toISOString();
+    }
+    const response = await api.post('/issues/borrow', payload);
+    return response.data.data;
+  } catch (error) {
+    return rejectWithValue(error.response?.data?.message || 'Failed to borrow book');
+  }
+});
+
+export const processBookReturn = createAsyncThunk('circulation/return', async ({ recordId, remarks }, { rejectWithValue }) => {
+  try {
+    const response = await api.post(`/circulation/return/${recordId}`, { remarks });
     return response.data.data;
   } catch (error) {
     return rejectWithValue(error.response?.data?.message || 'Failed to log return event');
@@ -38,7 +52,11 @@ const circulationSlice = createSlice({
     actionLoading: false,
     error: null,
   },
-  reducers: {},
+  reducers: {
+    clearCirculationError: (state) => {
+      state.error = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchCirculationRecords.pending, (state) => { state.loading = true; })
@@ -47,6 +65,17 @@ const circulationSlice = createSlice({
         state.records = action.payload;
       })
       .addCase(fetchCirculationRecords.rejected, (state, action) => { state.loading = false; state.error = action.payload; })
+      
+      .addCase(borrowBook.pending, (state) => { state.actionLoading = true; })
+      .addCase(borrowBook.fulfilled, (state, action) => {
+        state.actionLoading = false;
+        // Add the new borrowed book to the records
+        state.records.unshift(action.payload);
+      })
+      .addCase(borrowBook.rejected, (state, action) => {
+        state.actionLoading = false;
+        state.error = action.payload;
+      })
       
       .addCase(processBookReturn.pending, (state) => { state.actionLoading = true; })
       .addCase(processBookReturn.fulfilled, (state, action) => {
@@ -62,4 +91,5 @@ const circulationSlice = createSlice({
   },
 });
 
+export const { clearCirculationError } = circulationSlice.actions;
 export default circulationSlice.reducer;

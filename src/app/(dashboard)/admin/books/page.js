@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchBooks, deleteBook } from '@/redux/slices/booksSlice';
 import { Plus, Download, Upload, Search, Edit, Trash2 } from 'lucide-react';
@@ -102,8 +103,8 @@ export default function AdminBookManagement() {
                   <tr key={book._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/20 transition-colors">
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-14 bg-slate-200 dark:bg-slate-700 rounded overflow-hidden shrink-0">
-                          {book.bookImage && <img src={book.bookImage} alt="" className="w-full h-full object-cover"/>}
+                        <div className="relative w-10 h-14 bg-slate-200 dark:bg-slate-700 rounded overflow-hidden shrink-0">
+                          {book.bookImage?.url && <Image src={book.bookImage.url} alt="" fill className="object-cover" sizes="40px" />}
                         </div>
                         <div>
                           <p className="text-sm font-bold text-slate-900 dark:text-slate-50 line-clamp-1">{book.title}</p>
