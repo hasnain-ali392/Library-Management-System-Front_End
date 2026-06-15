@@ -18,7 +18,7 @@ export default function UserBorrowedAndFinesView() {
   // Aggregate outstanding liabilities
   const totalOutstandingFine = records.reduce((sum, rec) => {
     if (rec.status === 'returned' && !rec.finePaid) return sum + (rec.fine || 0);
-    if (rec.status === 'issued') return sum + calculateOverdueMetrics(rec.returnDate).fineAmount;
+    if (rec.status === 'borrowed') return sum + calculateOverdueMetrics(rec.returnDate).fineAmount;
     return sum;
   }, 0);
 
@@ -41,7 +41,7 @@ export default function UserBorrowedAndFinesView() {
           <div>
             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Book Holdings</span>
             <h3 className="text-3xl font-extrabold text-blue-600 mt-1">
-              {records.filter(r => r.status === 'issued').length} Books
+              {records.filter(r => r.status === 'borrowed').length} Books
             </h3>
             <p className="text-xs text-slate-400 mt-1">Check return schedules below to avoid overdue fines.</p>
           </div>
@@ -72,7 +72,7 @@ export default function UserBorrowedAndFinesView() {
                     <h4 className="font-bold text-slate-800 dark:text-slate-200 text-base">{rec.bookId?.title}</h4>
                     <p className="text-xs text-slate-500">Author: <span className="font-medium text-slate-700 dark:text-slate-300">{rec.bookId?.author}</span></p>
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400 pt-1">
-                      <span>Issued: <strong>{rec.issueDate ? format(parseISO(rec.issueDate), 'dd MMM yyyy') : '—'}</strong></span>
+                      <span>Borrowed: <strong>{rec.borrowDate ? format(parseISO(rec.borrowDate), 'dd MMM yyyy') : '—'}</strong></span>
                       <span>Expected Return: <strong className="text-slate-600 dark:text-slate-300">{rec.returnDate ? format(parseISO(rec.returnDate), 'dd MMM yyyy') : '—'}</strong></span>
                     </div>
                   </div>

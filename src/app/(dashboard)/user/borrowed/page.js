@@ -25,14 +25,14 @@ import {
 } from 'lucide-react';
 
 const STATUS_LABELS = {
-  issued: 'Issued',
+  borrowed: 'Borrowed',
   returned: 'Returned',
   lost: 'Lost',
   damaged: 'Damaged',
 };
 
 const normalizeStatus = (status) => {
-  if (!status) return 'Issued';
+  if (!status) return 'Borrowed';
   const lower = String(status).toLowerCase();
   return STATUS_LABELS[lower] || status;
 };
@@ -56,7 +56,7 @@ const normalizeUserId = (userId) => {
 };
 
 const normalizeDateField = (record) => ({
-  issueDate: record.issueDate,
+  borrowDate: record.borrowDate || record.issueDate,
   returnDate: record.returnDate || record.dueDate,
   actualReturnDate: record.actualReturnDate || null,
 });
@@ -97,13 +97,13 @@ export default function UserBorrowedAndFinesView() {
     if (status === 'Returned' && !rec.finePaid) {
       return sum + (rec.fineAmount || rec.fine || 0);
     }
-    if (status === 'Issued') {
+    if (status === 'Borrowed') {
       return sum + calculateOverdueMetrics(rec.returnDate).fineAmount;
     }
     return sum;
   }, 0);
 
-  const activeLoans = recordsView.filter((r) => normalizeStatus(r.status) === 'Issued');
+  const activeLoans = recordsView.filter((r) => normalizeStatus(r.status) === 'Borrowed');
 
   const handleTriggerReturn = (id) => {
     if (window.confirm('Process verification for this book entry return?')) {
@@ -263,9 +263,9 @@ function UserLedgerList({ records, loading }) {
                 Author: <span className="font-medium text-slate-700 dark:text-slate-300">{book.author}</span>
               </p>
               <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400 pt-1">
-                {rec.issueDate && (
+                {rec.borrowDate && (
                   <span>
-                    Issued: <strong>{format(parseISO(rec.issueDate), 'dd MMM yyyy')}</strong>
+                    Borrowed: <strong>{format(parseISO(rec.borrowDate), 'dd MMM yyyy')}</strong>
                   </span>
                 )}
                 {rec.returnDate && (
@@ -360,10 +360,10 @@ function AdminLedgerTable({ records, loading, onReturn, onSettleFine, actionLoad
                   <p className="text-xs text-slate-400">{member.email}</p>
                 </td>
                 <td className="p-4 space-y-0.5 text-xs">
-                  {rec.issueDate && (
+                  {rec.borrowDate && (
                     <div className="flex items-center gap-1.5 text-slate-500">
-                      <span className="font-medium">Issued:</span>{' '}
-                      {format(parseISO(rec.issueDate), 'dd MMM yyyy')}
+                      <span className="font-medium">Borrowed:</span>{' '}
+                      {format(parseISO(rec.borrowDate), 'dd MMM yyyy')}
                     </div>
                   )}
                   {rec.returnDate && (

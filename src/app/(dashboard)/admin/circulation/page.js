@@ -69,7 +69,7 @@ export default function AdminCirculationLedger() {
                       </td>
                       <td className="p-4 space-y-0.5 text-xs">
                         <div className="flex items-center gap-1.5 text-slate-500">
-                          <span className="font-medium">Issued:</span> {rec.issueDate ? format(parseISO(rec.issueDate), 'dd MMM yyyy') : '—'}
+                          <span className="font-medium">Borrowed:</span> {rec.borrowDate ? format(parseISO(rec.borrowDate), 'dd MMM yyyy') : '—'}
                         </div>
                         <div className="flex items-center gap-1.5 font-medium text-slate-700 dark:text-slate-300">
                           <span>Target Due:</span> {rec.returnDate ? format(parseISO(rec.returnDate), 'dd MMM yyyy') : '—'}

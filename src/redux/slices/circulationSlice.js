@@ -19,7 +19,7 @@ export const borrowBook = createAsyncThunk('circulation/borrow', async ({ bookId
     if (returnDate) {
       payload.returnDate = new Date(returnDate).toISOString();
     }
-    const response = await api.post('/issues/borrow', payload);
+    const response = await api.post('/borrow/borrow', payload);
     return response.data.data;
   } catch (error) {
     return rejectWithValue(error.response?.data?.message || 'Failed to borrow book');
