@@ -6,6 +6,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { X, Star, BookOpen, Calendar, Hash, CheckCircle2, Loader2, AlertCircle, CalendarPlus } from 'lucide-react';
 import { borrowBook, clearCirculationError } from '@/redux/slices/circulationSlice';
 import { format, addDays, getISODay, parseISO } from 'date-fns';
+import toast from 'react-hot-toast';
+import ConfirmationModal from '@/components/ui/ConfirmationModal';
 
 const DEFAULT_LOAN_DAYS = 15;
 
@@ -20,7 +22,7 @@ export default function BookDetailModal({ book, isOpen, onClose, onBorrowed }) {
 
   const [returnDate, setReturnDate] = useState(toDateInputValue(addDays(new Date(), DEFAULT_LOAN_DAYS)));
   const [success, setSuccess] = useState(false);
-  const [localError, setLocalError] = useState(null);
+  const [isBorrowModalOpen, setIsBorrowModalOpen] = useState(false);
 
   // Reset transient state whenever the modal is reopened with a new book
   useEffect(() => {
@@ -29,7 +31,7 @@ export default function BookDetailModal({ book, isOpen, onClose, onBorrowed }) {
       setTimeout(() => {
         setReturnDate(toDateInputValue(addDays(new Date(), DEFAULT_LOAN_DAYS)));
         setSuccess(false);
-        setLocalError(null);
+        setIsBorrowModalOpen(false);
         dispatch(clearCirculationError());
       }, 0);
     }
@@ -47,24 +49,23 @@ export default function BookDetailModal({ book, isOpen, onClose, onBorrowed }) {
   if (!isOpen || !book) return null;
 
   const handleBorrow = async () => {
-    setLocalError(null);
     dispatch(clearCirculationError());
 
     if (!bookKey) {
-      setLocalError('This book record is missing a valid identifier.');
+      toast.error('This book record is missing a valid identifier.');
       return;
     }
 
     const chosen = new Date(returnDate);
     if (Number.isNaN(chosen.getTime())) {
-      setLocalError('Please choose a valid return date.');
+      toast.error('Please choose a valid return date.');
       return;
     }
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     if (chosen < today) {
-      setLocalError('Return date must be in the future.');
+      toast.error('Return date must be in the future.');
       return;
     }
 
@@ -72,6 +73,7 @@ export default function BookDetailModal({ book, isOpen, onClose, onBorrowed }) {
 
     if (borrowBook.fulfilled.match(result)) {
       setSuccess(true);
+      toast.success('Book borrowed successfully!');
       if (typeof onBorrowed === 'function') {
         onBorrowed(result.payload);
       }
@@ -80,11 +82,9 @@ export default function BookDetailModal({ book, isOpen, onClose, onBorrowed }) {
         onClose();
       }, 2000);
     } else {
-      setLocalError(result.payload || 'Failed to borrow book. Please try again.');
+      toast.error('We could not process your borrow request at this time. Please try again later.');
     }
   };
-
-  const errorMessage = localError || borrowError;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
@@ -175,14 +175,6 @@ export default function BookDetailModal({ book, isOpen, onClose, onBorrowed }) {
               </div>
             </div>
 
-            {/* Error Banner */}
-            {errorMessage && !success && (
-              <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 text-xs text-red-700 dark:text-red-300 flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-                <span>{errorMessage}</span>
-              </div>
-            )}
-
             {/* Action Area */}
             <div className="mt-auto pt-6 border-t border-slate-100 dark:border-slate-800">
               {success ? (
@@ -191,7 +183,7 @@ export default function BookDetailModal({ book, isOpen, onClose, onBorrowed }) {
                 </div>
               ) : (
                 <button
-                  onClick={handleBorrow}
+                  onClick={() => setIsBorrowModalOpen(true)}
                   disabled={!isAvailable || actionLoading}
                   className={`w-full h-12 flex items-center justify-center gap-2 font-bold rounded-xl transition-all shadow-sm ${isAvailable
                     ? 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-md'
@@ -209,6 +201,15 @@ export default function BookDetailModal({ book, isOpen, onClose, onBorrowed }) {
           </div>
         </div>
       </div>
+
+      <ConfirmationModal
+        isOpen={isBorrowModalOpen}
+        onClose={() => setIsBorrowModalOpen(false)}
+        onConfirm={handleBorrow}
+        title="Confirm Borrow"
+        message={`Are you sure you want to borrow "${book.title}" until ${new Date(returnDate).toLocaleDateString()}?`}
+        confirmText="Confirm Borrow"
+      />
     </div>
   );
 }

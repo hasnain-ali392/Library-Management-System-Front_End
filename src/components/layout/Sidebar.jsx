@@ -18,6 +18,8 @@ import {
   ChevronRight,
 } from "lucide-react";
 import api from "@/services/api";
+import toast from "react-hot-toast";
+import ConfirmationModal from "@/components/ui/ConfirmationModal";
 
 export default function Sidebar({
   isCollapsed,
@@ -29,6 +31,7 @@ export default function Sidebar({
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const [hasMounted, setHasMounted] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   useEffect(() => {
     setTimeout(() => setHasMounted(true), 0);
@@ -61,12 +64,14 @@ export default function Sidebar({
 
   const activeLinks = role === "admin" ? adminLinks : userLinks;
 
-  const handleLogout = async () => {
+  const performLogout = async () => {
     try {
       await api.post("/auth/logout");
       dispatch(logout());
+      toast.success("Successfully logged out!");
     } catch (error) {
       console.error("Logout error:", error);
+      toast.error("Something went wrong during logout. Please try again or refresh the page.");
       // Even if API call fails, still logout client-side
       dispatch(logout());
     }
@@ -134,13 +139,23 @@ export default function Sidebar({
       {/* Sticky Bottom Actions */}
       <div className="p-3 border-t border-slate-200 dark:border-slate-800">
         <button
-          onClick={handleLogout}
-          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all group"
+          onClick={() => setIsLogoutModalOpen(true)}
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all group cursor-pointer"
         >
           <LogOut className="w-5 h-5 shrink-0 group-hover:translate-x-0.5 transition-transform" />
           {!isCollapsed && <span>Logout Session</span>}
         </button>
       </div>
+
+      <ConfirmationModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={performLogout}
+        title="Confirm Logout"
+        message="Are you sure you want to end your current session?"
+        confirmText="Log Out"
+        isDanger={true}
+      />
     </aside>
   );
 }

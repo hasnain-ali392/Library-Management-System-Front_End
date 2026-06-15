@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import ReduxProvider from "@/redux/ReduxProvider";
+import ToastProvider from "@/components/ui/ToastProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -26,6 +27,7 @@ export default function RootLayout({ children }) {
     >
       <body suppressHydrationWarning className="min-h-full flex flex-col bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-50">
         <ReduxProvider>
+          <ToastProvider />
           {children}
         </ReduxProvider>
       </body>
