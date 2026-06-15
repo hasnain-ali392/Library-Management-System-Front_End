@@ -41,6 +41,10 @@ const authSlice = createSlice({
         Cookies.set('user', JSON.stringify(user), { secure: true });
       }
     },
+    authFailure: (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    },
     logout: (state) => {
       state.user = null;
       state.isAuthenticated = false;
@@ -57,5 +61,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { authStart, authSuccess, logout } = authSlice.actions;
+export const { authStart, authSuccess, authFailure, logout } = authSlice.actions;
 export default authSlice.reducer;

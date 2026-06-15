@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema } from '@/utils/validation';
 import { useDispatch, useSelector } from 'react-redux';
-import { authStart, authSuccess } from '@/redux/slices/authSlice';
+import { authStart, authSuccess, authFailure } from '@/redux/slices/authSlice';
 import api from '@/services/api';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -51,6 +51,7 @@ export default function LoginPage() {
       router.push(user.role === 'admin' ? '/admin/dashboard' : '/user/dashboard');
     } catch (error) {
       const message = error.response?.data?.message || 'Invalid credentials. Please try again.';
+      dispatch(authFailure(message));
       setServerError(message);
     }
   };
